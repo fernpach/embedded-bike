@@ -5,10 +5,11 @@ bike_client
 #import mraa
 import random
 import socket
+import json
 from collections import OrderedDict
 
 SERVER_IP = "127.0.0.1"
-SERVER_PORT = "5005"
+SERVER_PORT = 5005
 
 USER = 0xbad
 
@@ -41,30 +42,29 @@ def _sample():
 
 
 def connect():
-	global(USER)
-	global(SERVER_IP)
-	global(SERVER_PORT)
-	global(WORKOUT_ID)
-	
+    global USER
+    global SERVER_IP
+    global SERVER_PORT
+    global WORKOUT_ID
+    
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((SERVER_IP, SERVER_PORT))
-	
-	initial_msg = {"user": USER, "client_type": 0}
-	
-	s.send(initial_msg)
-	
-	server_ack = s.recv(1024)
-	
-	
-	if not server_ack["user"] == USER:
-		print "Error: User mismatch in server ack"
-		s.close()
-		
-	WORKOUT_ID = server_ack["workout_id"]
+    s.connect((SERVER_IP, SERVER_PORT))
+    
+    initial_msg = {"user": USER, "client_type": 0}
+    
+    s.send(json.dumps(initial_msg))
+    
+    server_ack = json.loads(s.recv(1024).decode('utf-8'))
+    
+    if not server_ack["user"] == USER:
+        print "Error: User mismatch in server ack"
+        s.close()
+    
+    WORKOUT_ID = server_ack["workout_id"]
 
 
 def main():
-    pass
+    connect()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 import struct
 import client_handler
 import hashlib
+import json
 
 import time
 
@@ -12,14 +13,14 @@ class Bike_Client_Handler():
 		# generate a workout id, send back to client
 		
 		h = hashlib.md5()
-		h.update(time.time())
-		h.update(parent_handler.user_id)
+		h.update(str(time.time()))
+		h.update(str(parent_handler.user))
 		
 		self.workout_id = h.hexdigest()
 		
-		ack_message = {"user": self.parent_handler.user, "workout_id" = self.workout_id}
+		ack_message = {"user": self.parent_handler.user, "workout_id": self.workout_id}
 		
-		self.parent_handler.send_to_client(ack_message)
+		self.parent_handler.send_to_client(json.dumps(ack_message))
 		
 		
 	def handle_message(self, data):

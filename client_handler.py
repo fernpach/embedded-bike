@@ -2,6 +2,7 @@ import socket
 import json
 
 import multiprocessing
+import traceback
 
 import game_client_handler
 import bike_client_handler
@@ -14,8 +15,10 @@ GAME_CLIENT_TYPE = 1
 
 
 
-class Client_Handler:
+class Client_Handler(multiprocessing.Process):
 	def __init__(self, conn, addr, bike_pipes):
+		multiprocessing.Process.__init__(self, target=self.begin_handling, args=())
+		
 		self.conn = conn
 		self.addr = addr
 		self.bike_pipes = bike_pipes
@@ -26,7 +29,7 @@ class Client_Handler:
 		
 		self.handler = None
 		
-	def start(self):
+	def begin_handling(self):
 	
 		# receive initial message with user ID and client type
 		data = self.conn.recv(BUFFER_SIZE)
@@ -35,7 +38,11 @@ class Client_Handler:
 			self.fatal_error("connection closed before information about client could be parsed")
 			
 		else:
+			print "\tReceived valid data"
+			
 			data_dict = json.loads(data.decode('utf-8'))
+			
+			print "\tDecoded json"
 			
 			try:
 				self.client_type = data_dict['client_type']
@@ -54,7 +61,8 @@ class Client_Handler:
 					pipe_in = self.bike_pipes[self.user][0]
 				else:
 					pipe_in, pipe_out = multiprocessing.Pipe()
-					self.bike_pipes[self.user] = (None, pipe_out)
+					#self.bike_pipes[self.user] = (None, pipe_out)
+					self.bike_pipes[self.user] = (None, None)
 				
 				self.handler = bike_client_handler.Bike_Client_Handler(self, pipe_in)
 				
@@ -74,21 +82,27 @@ class Client_Handler:
 			else:
 				self.fatal_error("Unknown client type")
 		
-		# begin waiting
+		# begin waiting for messages from clients
+		self.conn.settimeout(0.001)
+		
 		while True:
-			if self.conn.poll():
+			try:
 				data = self.conn.recv(BUFFER_SIZE)
 				
-				if not data
+				if not data:
 					self.print_message("Connection closed")
 					break
 					
 				else:
 					data_dict = json.loads(data.decode('utf-8'))
 					self.client.handle_message(data_dict)
-			else:
-				handler.on_no_data()
+					
+			except socket.timeout:
+				self.handler.on_no_data()
 				self.clear_bike_sample_queue()
+				
+			except EOFError:
+				break
 				
 		self.cleanup()
 		
@@ -108,14 +122,14 @@ class Client_Handler:
 		"""
 		Clear pipe to prevent samples piling up when no one is listening
 		"""
-		if self.user in self.bike_pipes
-			pipe_out = self.bike_pipes[self.user]
+		if self.user in self.bike_pipes:
+			pipe_out = self.bike_pipes[self.user][1]
 			
 			if not pipe_out == None:
 				# pop and discard samples
-				while self.parent_handler.bike_connections[self.user].poll():
+				while pipe_out.poll():
 					try:
-						_ = self.parent_handler.bike_connections[self.user].recv()
+						_ = pipe_out.recv()
 						
 					except EOFError:
 						# notify client that other bike client disconnected
@@ -125,20 +139,17 @@ class Client_Handler:
 				return
 		
 	def cleanup(self):
+		self.handler.cleanup()
 		self.conn.close()
-		
+
+		# TO-DO: remove pipes from pipe dict when both are closed
 		if self.client_type == BIKE_CLIENT_TYPE:
-			# clean up the pipe
-			self.bike_pipes[self.user].close()
-			del self.bike_pipes[self.user]
+			pass
 			
 		elif self.client_type == GAME_CLIENT_TYPE:
 			pass
 		
 		
-def fork_client_handler(conn, addr, bike_pipes):
-	handler = Client_Handler(conn, addr, bike_pipes)
-	
-	handler.start()
+
 
 

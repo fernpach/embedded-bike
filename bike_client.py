@@ -1,11 +1,20 @@
-from google.cloud import datastore
+"""
+bike_client
+"""
+# Uncomment when ready to test on board
+#import mraa
 
-client = datastore.Client()
 
-def addMetric(metric, key):
-    client.key('Metric', key)
+METRIC_KEYS = ['workout_id', 'speed', 'distance',
+               'calories_burned', 'heart_rate', 'timestamp']
+
+def sample():
+    raw_data = _sample()
+
+    return dict(zip(METRIC_KEYS, raw_data))
+
+
+def _sample():
+    # This will read GPIO pins (eventually)
+    # for testing let's just manufacture data
     
-    metric_entity = datastore.Entity(key=key)
-    metric_entity.update(metric)
-
-    client.put(metric_entity)

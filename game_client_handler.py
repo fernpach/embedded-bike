@@ -1,5 +1,6 @@
 import struct
 import client_handler
+import json
 
 BUFFER_SIZE = 1024
 
@@ -49,7 +50,7 @@ class Game_Client_Handler():
 			# notify game client that no bike client was found
 			err_msg = {"error" : "no bike client"}
 			
-			self.parent_handler.send_to_client(err_msg)
+			self.parent_handler.send_to_client(json.dumps(err_msg))
 		
 	def pass_along_bike_samples(self):
 		# pop samples from queue and send to client

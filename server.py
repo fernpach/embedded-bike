@@ -4,7 +4,7 @@ import multiprocessing
 import client_handler
 
 TCP_IP = "127.0.0.1"
-TCP_PORT = "5005"
+TCP_PORT = 5005
 BUFFER_SIZE = 1024
 
 
@@ -17,12 +17,12 @@ class Server:
 		self.manager = multiprocessing.Manager()
 
 		# Keys are user IDs
-		self.bike_pipes = manager.dict()
+		self.bike_pipes = self.manager.dict()
 		
 		self.active_connections = dict()
 		
 	def start(self):
-		self.socket.bind(self.ip, self.port)
+		self.socket.bind((self.ip, self.port))
 		self.socket.listen(1)
 		
 		self.wait_for_clients()
@@ -31,12 +31,12 @@ class Server:
 		while True:
 			conn, addr = self.socket.accept()
 			
-			p = multiprocessing.Process(target=client_handler.fork_client_handler, \
-					args=(self.workout_streaming, conn, addr, self.bike_pipes))
+			print "Accepted a client, forking..."
+			new_handler = client_handler.Client_Handler(conn, addr, self.bike_pipes)
 			
-			p.start()
+			new_handler.start()
 			
-			self.active_connections[addr] = p
+			self.active_connections[addr] = new_handler
 			
 		self.cleanup()
 		
@@ -45,6 +45,14 @@ class Server:
 			p.join()
 		
 		self.socket.close()
+		
+def fork_client_handler(conn, addr, bike_pipes):
+	print "\tIn client handler process..."
+	handler = client_handler.Client_Handler(conn, addr, bike_pipes)
+	
+	print "\tCreated client handler"
+	
+	handler.start()
 
 if __name__ == "__main__":
 	server = Server(TCP_IP, TCP_PORT)

@@ -1,11 +1,13 @@
 """
 bike_client
 """
-# Uncomment when ready to test on board
+import time
 #import mraa
 import random
 from collections import OrderedDict
 
+
+SECONDS_PER_SAMPLE = 1
 
 METRIC_KEYS = ['workout_id', 'speed', 'distance',
                'calories_burned', 'heart_rate', 'timestamp']
@@ -37,7 +39,15 @@ def connect():
 
 
 def main():
-    pass
+    # connect to server
+    session_id = 0
+
+    # Sample GPIO pins for workout
+    # data
+    while True:
+        workout_data = sample(session_id)
+        time.sleep(SECONDS_PER_SAMPLE)
+
 
 
 if __name__ == '__main__':

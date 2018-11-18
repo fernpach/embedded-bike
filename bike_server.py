@@ -12,24 +12,25 @@ def connect():
                            password=passwd,
                            db=db) 
 
-def db_Entry(d, db_name):
-    sql_push = "INSERT INTO " + db_name + "(UserID, Timestamp, WorkoutID, Speed, Distance, HeartRate, Calories) values (" + d["UserID"] +"," +  d["Timestamp"] +"," +  d["WorkoutID"] +"," +  d["Speed"] +"," +  d["Distance"] +"}"
-    return sql_push
+
+def sql_insert(connection, entry_dict):
+    """Perform sql insert using column,value pairs in entry_dict."""
+    with connection.cursor() as cursor:
+        sql = ("INSERT INTO entries" 
+               "({}) values ({});".format(db_name,
+                                          ",".join(d.keys()),
+                                          ",".join(d.values()))
+              )
+        cursor.execute(sql)
+
 
 def main():
     """Script entry point."""    
     try:
         connection = connect()
-        with connection.cursor() as cursor:
-            tmp_data = {"UserID": "Sarah TMP", "Timestamp": 3, "WorkoutID": 0, "Speed": 22, "Distance":50}            
-            cursor.execute(db_Entry(tmp_data, 'entries'))
-                           
-            sql = "SELECT * FROM entries"
-            cursor.execute(sql)
-            #result = cursor.fetchone()
-            result = cursor.fetchall()
-            print(result)
-    finally:
+    except:
+        print('Failed to connect...')
+    else:
         connection.close() 
 
 

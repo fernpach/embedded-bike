@@ -24,6 +24,14 @@ def sql_insert(connection, entry_dict):
         cursor.execute(sql)
 
 
+def sql_select(connection, workout_id):
+    with connection.cursor() as cursor:
+        # Need to make this select most recent record
+        sql = "SELECT * FROM entries WHERE {}".format(workout_id)
+        cursor.execute(sql)
+        return cursor.fetchone()
+    
+
 def main():
     """Script entry point."""    
     try:

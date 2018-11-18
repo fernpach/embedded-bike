@@ -4,32 +4,41 @@ bike_client
 # Uncomment when ready to test on board
 #import mraa
 import random
-from datetime import datetime
+from collections import OrderedDict
 
 
 METRIC_KEYS = ['workout_id', 'speed', 'distance',
                'calories_burned', 'heart_rate', 'timestamp']
 
 
-def sample():
-    raw_data = _sample()
+def sample(workout_id):
+    raw_data = []
+    raw_data.append(workout_id)
+    raw_data += _sample()
+    raw_data.append(datetime.now())
 
-    return dict(zip(METRIC_KEYS, raw_data))
+    return OrderedDict(zip(METRIC_KEYS, raw_data))
 
 
 def _sample():
     # This will read GPIO pins (eventually)
-    # for testing let's just manufacture data
-    wid = generate_workout_id()       # unique workout id 
-    speed = random.randint(1, 20)     # miles/hr
-    distance = random.randint(1, 10)  # miles
+    # for testing let's just make something up
+    speed = random.randint(1, 20)
+    distance = random.randint(1, 10)
     calories_burned = random.randint(1, 300)
     heart_rate = random.randint(1, 120)
-    timestamp = datetime.now()
 
-    return [wid, speed, distance, calories_burned,
-            heart_rate, timestamp]
+    return [speed, distance,
+            calories_burned, heart_rate]
 
 
-def generate_workout_id():
-    
+def connect():
+    pass
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()

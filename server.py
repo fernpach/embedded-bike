@@ -17,8 +17,7 @@ class Server:
 		self.manager = multiprocessing.Manager()
 
 		# Keys are user IDs
-		self.bike_clients = self.manager.dict()
-		self.game_clients = self.manager.dict()
+		self.bike_pipes = manager.dict()
 		
 		self.active_connections = dict()
 		
@@ -32,7 +31,8 @@ class Server:
 		while True:
 			conn, addr = self.socket.accept()
 			
-			p = multiprocessing.Process(target=client_handler.fork_client_handler, args=(self.workout_streaming, conn, addr))
+			p = multiprocessing.Process(target=client_handler.fork_client_handler, \
+					args=(self.workout_streaming, conn, addr, self.bike_pipes))
 			
 			p.start()
 			

@@ -43,3 +43,6 @@ class Bike_Client_Handler():
 		
 	def on_no_data(self):
 		return
+		
+	def cleanup(self):
+		self.pipe_in.close()

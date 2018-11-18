@@ -15,6 +15,10 @@ class Game_Client_Handler():
 		self.on_no_data = self.nop
 		self.pipe_out = pipe_out
 		
+		ack_message = {"user": self.parent_handler.user}
+		
+		self.parent_handler.send_to_client(ack_message)
+		
 		
 	def handle_message(self, data):
 		try:
@@ -37,21 +41,29 @@ class Game_Client_Handler():
 			self.on_no_data = self.nop
 			return
 			
-	def pass_along_bike_samples(self):
+	def attempt_to_start_game(self):
 		if self.user in self.parent_handler.bike_connections:
-			# pop samples from queue and send to client
-			while self.pipe_out.poll():
-				try:
-					new_sample = self.pipe_out.recv()
-					self.parent_handler.send_to_client(new_data)
-					
-				except EOFError:
-					# notify client that other bike client disconnected
-					break
-			
+			self.on_no_data = self.pass_along_bike_samples
+		
 		else:
-			# notify game client that no bike client is found
-			pass
+			# notify game client that no bike client was found
+			err_msg = {"error" : "no bike client"}
+			
+			self.parent_handler.send_to_client(err_msg)
+		
+	def pass_along_bike_samples(self):
+		# pop samples from queue and send to client
+		while self.pipe_out.poll():
+			try:
+				new_sample = self.pipe_out.recv()
+				self.parent_handler.send_to_client(new_data)
+				
+			except EOFError:
+				# notify client that other bike client disconnected
+				break
 			
 	def nop(self):
 		return
+		
+	def cleanup(self):
+		self.pipe_out.close()

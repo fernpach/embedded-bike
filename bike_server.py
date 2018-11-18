@@ -3,9 +3,9 @@ import pymysql
 
 
 def connect():
-    user = 'root'
-    passwd = 'intel123'
-    db = 'captare'
+    user = ''
+    passwd = ''
+    db = ''
 
     return pymysql.connect(host='127.0.0.1',
                            user=user,
@@ -13,7 +13,7 @@ def connect():
                            db=db) 
 
 def db_Entry(d, db_name):
-    sql_push = "INSERT INTO " + db_name + "(UserID, Timestamp, WorkoutID, Speed, Distance, HeartRate, Calories) values (" + d[UserID] +"," +  d[Timestamp] +"," +  d[WorkoutID] +"," +  d[Speed] +"," +  d[Distance] +"}"
+    sql_push = "INSERT INTO " + db_name + "(UserID, Timestamp, WorkoutID, Speed, Distance, HeartRate, Calories) values (" + d["UserID"] +"," +  d["Timestamp"] +"," +  d["WorkoutID"] +"," +  d["Speed"] +"," +  d["Distance"] +"}"
     return sql_push
 
 def main():

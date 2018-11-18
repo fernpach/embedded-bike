@@ -4,7 +4,15 @@ bike_client
 # Uncomment when ready to test on board
 #import mraa
 import random
+import socket
 from collections import OrderedDict
+
+SERVER_IP = "127.0.0.1"
+SERVER_PORT = "5005"
+
+USER = 0xbad
+
+WORKOUT_ID = -1
 
 
 METRIC_KEYS = ['workout_id', 'speed', 'distance',
@@ -33,7 +41,26 @@ def _sample():
 
 
 def connect():
-    pass
+	global(USER)
+	global(SERVER_IP)
+	global(SERVER_PORT)
+	global(WORKOUT_ID)
+	
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect((SERVER_IP, SERVER_PORT))
+	
+	initial_msg = {"user": USER, "client_type": 0}
+	
+	s.send(initial_msg)
+	
+	server_ack = s.recv(1024)
+	
+	
+	if not server_ack["user"] == USER:
+		print "Error: User mismatch in server ack"
+		s.close()
+		
+	WORKOUT_ID = server_ack["workout_id"]
 
 
 def main():
